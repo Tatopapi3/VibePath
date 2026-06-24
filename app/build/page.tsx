@@ -10,17 +10,15 @@ type Phase = "prd" | "generating" | "done";
 type Tab = "preview" | "code";
 
 const PRD_QUESTIONS = [
-  { q: "What problem does your app solve?", placeholder: "e.g. People forget to track their daily expenses" },
+  { q: "What does your app do?", placeholder: "e.g. Helps people track daily expenses and see monthly summaries" },
   { q: "Who is it for?", placeholder: "e.g. Freelancers and small business owners" },
-  { q: "What are the 3 main things it must do?", placeholder: "e.g. Log expenses, show monthly totals, export CSV" },
-  { q: "What's the MVP scope?", placeholder: "e.g. Just the core tracker — no auth or team features yet" },
+  { q: "What are the core features?", placeholder: "e.g. Log expenses, show charts, export CSV" },
 ];
 
 function compilePRD(answers: string[]) {
-  return `Build an app that solves: ${answers[0]}.
+  return `Build an app that: ${answers[0]}.
 Target users: ${answers[1]}.
-Core features: ${answers[2]}.
-MVP scope: ${answers[3]}.`;
+Core features: ${answers[2]}.`;
 }
 
 export default function BuildPage() {
@@ -79,7 +77,7 @@ export default function BuildPage() {
     const answers = [...prdAnswers, prdInput.trim()];
     setPrdAnswers(answers);
     setPrdInput("");
-    if (prdStep < 3) {
+    if (prdStep < 2) {
       setPrdStep(prdStep + 1);
     } else {
       const finalPrompt = compilePRD(answers);
@@ -105,7 +103,7 @@ export default function BuildPage() {
     setError(null);
   }
 
-  const progress = ((prdStep + 1) / 4) * 100;
+  const progress = ((prdStep + 1) / 3) * 100;
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
@@ -158,7 +156,7 @@ export default function BuildPage() {
                   <div className="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                   </div>
-                  <span className="text-xs text-gray-500 tabular-nums">{prdStep + 1}/4</span>
+                  <span className="text-xs text-gray-500 tabular-nums">{prdStep + 1}/3</span>
                 </div>
 
                 <div className="mb-2">
@@ -185,7 +183,7 @@ export default function BuildPage() {
                     disabled={!prdInput.trim()}
                     className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all"
                   >
-                    {prdStep < 3 ? "Next →" : "Generate App ✨"}
+                    {prdStep < 2 ? "Next →" : "Generate App ✨"}
                   </button>
                 </div>
 
