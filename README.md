@@ -2,6 +2,8 @@
 
 **Live: [vibepath-olive.vercel.app](https://vibepath-olive.vercel.app)**
 
+![VibePath home page](docs/screenshot.png)
+
 ## Problem
 
 AI app builders (v0, bolt.new, Lovable, etc.) can generate a working app from a
