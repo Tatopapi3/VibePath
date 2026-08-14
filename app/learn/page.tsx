@@ -9,7 +9,7 @@ import type { Language, Unit, Lesson } from "@/lib/content/types";
 
 const LANG_ICONS: Record<string, string> = {
   python: "🐍", javascript: "⚡", typescript: "🔷", html: "🌐",
-  css: "🎨", sql: "🗄️", react: "⚛️", git: "🌿",
+  css: "🎨", sql: "🗄️", react: "⚛️", git: "🌿", product: "🧭",
 };
 
 const TYPE_ICONS: Record<string, string> = {
