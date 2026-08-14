@@ -6,6 +6,7 @@ import LearningPanel from "@/components/learning/LearningPanel";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { EXAMPLE_PROMPTS } from "@/lib/prompts";
 import { PREVIEW_STORAGE_SHIM, addCrossOriginToExternalScripts } from "@/lib/previewShim";
+import { TRUNCATION_MARKER } from "@/lib/truncationMarker";
 
 type Phase = "prd" | "generating" | "done" | "error";
 type Tab = "preview" | "code";
@@ -70,6 +71,13 @@ export default function BuildPage() {
         if (done) break;
         html += decoder.decode(value);
         setGeneratedCode(html);
+      }
+      if (html.includes(TRUNCATION_MARKER)) {
+        html = html.replace(TRUNCATION_MARKER, "");
+        setGeneratedCode(html);
+        throw new Error(
+          "The generated app was too large and got cut off before finishing. Try a simpler request, or ask for fewer features."
+        );
       }
       setPhase("done");
       setActiveTab("preview");

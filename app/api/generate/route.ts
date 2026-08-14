@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
+import { TRUNCATION_MARKER } from "@/lib/truncationMarker";
 
 export const maxDuration = 60;
 
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   try {
     stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-6",
-      max_tokens: 16000,
+      max_tokens: 32000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: prompt }],
     });
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
     async start(controller) {
+      let stopReason: string | null = null;
       try {
         let result = first;
         while (!result.done) {
@@ -49,8 +51,19 @@ export async function POST(req: Request) {
             chunk.delta.type === "text_delta"
           ) {
             controller.enqueue(encoder.encode(chunk.delta.text));
+          } else if (chunk.type === "message_delta") {
+            stopReason = chunk.delta.stop_reason;
           }
           result = await iterator.next();
+        }
+        // A custom message attached to controller.error() here would not
+        // reach the client — by this point bytes are already flowing and
+        // the HTTP status is locked in, so a stream-level error only ever
+        // surfaces as a generic "network error" with no detail (verified).
+        // Signal truncation inside the successful response body instead;
+        // the client checks for this marker and raises the real message.
+        if (stopReason === "max_tokens") {
+          controller.enqueue(encoder.encode(TRUNCATION_MARKER));
         }
         controller.close();
       } catch (err) {
