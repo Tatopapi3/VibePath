@@ -10,6 +10,10 @@ Requirements:
 - Include realistic sample data
 - Dark or light theme as appropriate
 - Mobile responsive
+- The file MUST end with a complete closing </html> tag — if you're running
+  low on space, cut decorative extras (custom fonts, animations, extra
+  sample data, extra categories) before cutting anything that would leave
+  the file unfinished. An unfinished file is worse than a plainer one.
 - Return ONLY the HTML, no explanation or markdown
 
 Start your response with <!DOCTYPE html>`;

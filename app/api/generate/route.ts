@@ -62,6 +62,11 @@ export async function POST(req: Request) {
         // surfaces as a generic "network error" with no detail (verified).
         // Signal truncation inside the successful response body instead;
         // the client checks for this marker and raises the real message.
+        // Note: this only catches truncation the Anthropic stream itself
+        // reports (stop_reason: "max_tokens"). A platform-level cutoff
+        // (e.g. this function's own maxDuration) ends the connection with
+        // no such signal — the client's own "does this look like a
+        // complete document" check is what catches that case.
         if (stopReason === "max_tokens") {
           controller.enqueue(encoder.encode(TRUNCATION_MARKER));
         }

@@ -72,8 +72,17 @@ export default function BuildPage() {
         html += decoder.decode(value);
         setGeneratedCode(html);
       }
-      if (html.includes(TRUNCATION_MARKER)) {
-        html = html.replace(TRUNCATION_MARKER, "");
+      const markedTruncated = html.includes(TRUNCATION_MARKER);
+      if (markedTruncated) html = html.replace(TRUNCATION_MARKER, "");
+      // Cause-agnostic safety net: even without an explicit truncation
+      // signal from the server (e.g. the platform's own function timeout
+      // cutting the connection, not just the model hitting max_tokens), a
+      // complete generation always ends with a closing </html> tag. If it
+      // doesn't, the stream ended early somewhere we couldn't detect
+      // server-side — treat it the same as a known truncation rather than
+      // handing the iframe HTML that can never parse.
+      const looksComplete = /<\/html\s*>\s*$/i.test(html.trim());
+      if (markedTruncated || !looksComplete) {
         setGeneratedCode(html);
         throw new Error(
           "The generated app was too large and got cut off before finishing. Try a simpler request, or ask for fewer features."
