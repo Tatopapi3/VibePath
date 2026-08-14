@@ -70,7 +70,7 @@ export interface Lesson {
 
 export interface UserProgress {
   id: string;
-  user_id: string;
+  device_id: string;
   lesson_id: string;
   completed: boolean;
   score?: number;

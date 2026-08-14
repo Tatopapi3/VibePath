@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getDeviceId } from "@/lib/deviceId";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import type { Language, Unit, Lesson } from "@/lib/content/types";
 
@@ -21,19 +22,34 @@ export default function LearnPage() {
   const [units, setUnits] = useState<(Unit & { lessons: Lesson[] })[]>([]);
   const [expandedUnit, setExpandedUnit] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [languagesLoaded, setLanguagesLoaded] = useState(false);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const supabase = createClient();
     supabase.from("languages").select("*").order("display_order").then(({ data }) => {
       if (data) setLanguages(data);
+      setLanguagesLoaded(true);
     });
+    supabase
+      .from("user_progress")
+      .select("lesson_id")
+      .eq("device_id", getDeviceId())
+      .then(({ data }) => {
+        if (data) setCompletedIds(new Set(data.map((r) => r.lesson_id)));
+      });
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
+    if (!languagesLoaded) return;
     const lang = languages.find((l) => l.slug === activeSlug);
-    if (!lang) return;
+    if (!lang) {
+      setUnits([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    const supabase = createClient();
 
     supabase
       .from("units")
@@ -49,7 +65,7 @@ export default function LearnPage() {
         if (sorted.length > 0) setExpandedUnit(sorted[0].id);
         setLoading(false);
       });
-  }, [activeSlug, languages]);
+  }, [activeSlug, languages, languagesLoaded]);
 
   const activeLang = languages.find((l) => l.slug === activeSlug);
 
@@ -161,6 +177,9 @@ export default function LearnPage() {
                             <p className="text-[10px] text-gray-600 capitalize mt-0.5">{lesson.type}</p>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
+                            {completedIds.has(lesson.id) && (
+                              <span className="text-[10px] text-emerald-400 font-bold" title="Completed">✓</span>
+                            )}
                             <span className="text-[10px] text-yellow-500 font-bold">+{lesson.xp_reward} XP</span>
                             <span className="text-gray-600 group-hover:text-gray-400 transition-colors text-sm">→</span>
                           </div>

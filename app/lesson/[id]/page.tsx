@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getDeviceId } from "@/lib/deviceId";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import type { Lesson, LessonContent, QuizContent, ChallengeContent } from "@/lib/content/types";
 
@@ -25,6 +26,26 @@ export default function LessonPage() {
       setLoading(false);
     });
   }, [id]);
+
+  useEffect(() => {
+    if (!done || !lesson) return;
+    const supabase = createClient();
+    supabase
+      .from("user_progress")
+      .upsert(
+        {
+          device_id: getDeviceId(),
+          lesson_id: lesson.id,
+          completed: true,
+          score: lesson.type === "quiz" ? score : null,
+          completed_at: new Date().toISOString(),
+        },
+        { onConflict: "device_id,lesson_id" }
+      )
+      .then(({ error }) => {
+        if (error) console.error("Failed to save lesson progress:", error);
+      });
+  }, [done, lesson, score]);
 
   if (loading) {
     return (
