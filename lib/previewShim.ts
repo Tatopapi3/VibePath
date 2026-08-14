@@ -1,3 +1,21 @@
+// Generated apps load React/ReactDOM/Babel/Tailwind from a CDN via
+// <script src="https://...">. Without a `crossorigin` attribute, the
+// browser refuses to expose any detail for errors whose call stack passes
+// through a cross-origin script — window.onerror just gets "Script error."
+// with no message, no stack, nothing. Since nearly everything in these
+// generated apps runs through React/Babel, that muting was making the
+// fatal-error overlay below useless for the crashes it exists to diagnose.
+// This adds crossorigin="anonymous" to external <script src> tags so real
+// error detail survives; the CDNs used here (unpkg, cdn.tailwindcss.com)
+// already send Access-Control-Allow-Origin: * , so this doesn't break
+// loading, it just stops the browser from hiding what went wrong.
+export function addCrossOriginToExternalScripts(html: string): string {
+  return html.replace(
+    /<script([^>]*\ssrc=["']https?:\/\/[^"']+["'][^>]*)>/gi,
+    (match, attrs: string) => (/\bcrossorigin\b/i.test(attrs) ? match : `<script${attrs} crossorigin="anonymous">`)
+  );
+}
+
 // The preview iframe is sandboxed with only `allow-scripts` (no
 // `allow-same-origin`) so generated code can't reach the parent page's
 // cookies/localStorage. That gives the srcdoc document an opaque origin,

@@ -5,7 +5,7 @@ import Link from "next/link";
 import LearningPanel from "@/components/learning/LearningPanel";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { EXAMPLE_PROMPTS } from "@/lib/prompts";
-import { PREVIEW_STORAGE_SHIM } from "@/lib/previewShim";
+import { PREVIEW_STORAGE_SHIM, addCrossOriginToExternalScripts } from "@/lib/previewShim";
 
 type Phase = "prd" | "generating" | "done" | "error";
 type Tab = "preview" | "code";
@@ -284,7 +284,7 @@ export default function BuildPage() {
               <div className="flex-1 overflow-hidden">
                 {activeTab === "preview" && (
                   <iframe
-                    srcDoc={PREVIEW_STORAGE_SHIM + generatedCode}
+                    srcDoc={PREVIEW_STORAGE_SHIM + addCrossOriginToExternalScripts(generatedCode)}
                     className="w-full h-full border-0"
                     sandbox="allow-scripts"
                     title="Generated App Preview"
