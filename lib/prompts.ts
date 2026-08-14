@@ -6,15 +6,22 @@ Requirements:
 - Use ReactDOM via CDN (https://unpkg.com/react-dom@18/umd/react-dom.development.js)
 - Use Babel standalone for JSX (https://unpkg.com/@babel/standalone/babel.min.js)
 - Use Tailwind CSS via CDN (https://cdn.tailwindcss.com)
-- Make it beautiful, modern, and fully functional
-- Include realistic sample data
+- Clean, modern, and fully functional
+- A few pieces of realistic sample data — 3-4 items is plenty, not a long list
 - Dark or light theme as appropriate
 - Mobile responsive
-- The file MUST end with a complete closing </html> tag — if you're running
-  low on space, cut decorative extras (custom fonts, animations, extra
-  sample data, extra categories) before cutting anything that would leave
-  the file unfinished. An unfinished file is worse than a plainer one.
 - Return ONLY the HTML, no explanation or markdown
+
+Hard constraint: this runs in a serverless function with a strict time
+budget. Keep the ENTIRE file under approximately 9,000 characters. This is
+a real limit, not a suggestion — a small, complete, working app is far
+better than a larger one that gets cut off mid-file and never runs at all.
+To hit that budget: implement 2-3 core features well with compact JSX and
+Tailwind utility classes only. Skip custom web fonts, keyframe animations,
+custom scrollbar styling, and any decorative extras — they cost space and
+add nothing to whether the app actually works. The file MUST end with a
+complete closing </html> tag; if you're running low on room, cut scope
+(fewer features, less sample data) rather than leaving it unfinished.
 
 Start your response with <!DOCTYPE html>`;
 

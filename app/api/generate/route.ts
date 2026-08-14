@@ -17,7 +17,14 @@ export async function POST(req: Request) {
   try {
     stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-6",
-      max_tokens: 32000,
+      // The real ceiling here isn't tokens, it's this route's own
+      // maxDuration (60s, the Vercel Hobby plan's cap — can't be raised).
+      // Measured throughput is ~280 chars/sec, so anything that needs much
+      // more than ~8000 tokens wasn't going to finish in time regardless of
+      // this number. Kept as a real backstop against a runaway response,
+      // sized to the ~9,000-character budget the system prompt now asks
+      // for (see lib/prompts.ts), not as the thing preventing timeouts.
+      max_tokens: 8000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: prompt }],
     });
