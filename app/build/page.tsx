@@ -6,7 +6,7 @@ import LearningPanel from "@/components/learning/LearningPanel";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { EXAMPLE_PROMPTS } from "@/lib/prompts";
 
-type Phase = "prd" | "generating" | "done";
+type Phase = "prd" | "generating" | "done" | "error";
 type Tab = "preview" | "code";
 
 const PRD_QUESTIONS = [
@@ -34,10 +34,15 @@ export default function BuildPage() {
   const [error, setError] = useState<string | null>(null);
   const prdInputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const generatingCodeRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
     prdInputRef.current?.focus();
   }, [prdStep]);
+
+  useEffect(() => {
+    generatingCodeRef.current?.scrollTo({ top: generatingCodeRef.current.scrollHeight });
+  }, [generatedCode]);
 
   const generate = useCallback(async (finalPrompt: string) => {
     setPhase("generating");
@@ -52,7 +57,10 @@ export default function BuildPage() {
         body: JSON.stringify({ prompt: finalPrompt }),
         signal: abortRef.current.signal,
       });
-      if (!res.ok) throw new Error("Generation failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Generation failed");
+      }
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let html = "";
@@ -64,11 +72,11 @@ export default function BuildPage() {
       }
       setPhase("done");
       setActiveTab("preview");
-      setTimeout(() => setShowLearningPanel(true), 800);
+      setTimeout(() => setShowLearningPanel(true), 5000);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Something went wrong");
-      setPhase("prd");
+      setPhase("error");
     }
   }, []);
 
@@ -174,8 +182,6 @@ export default function BuildPage() {
                   className="w-full bg-gray-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm resize-none focus:outline-none focus:border-violet-500/50 transition-colors mb-4"
                 />
 
-                {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
-
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-600">⌘ + Enter to continue</span>
                   <button
@@ -204,18 +210,49 @@ export default function BuildPage() {
 
           {/* Generating */}
           {phase === "generating" && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/20 flex items-center justify-center text-2xl animate-pulse">⚡</div>
-              <p className="text-white font-semibold">Generating your app…</p>
-              <p className="text-gray-500 text-sm">Claude is writing the code</p>
-              <div className="flex gap-1 mt-2">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />
-                ))}
-              </div>
-              {generatedCode && (
-                <p className="text-xs text-gray-600 mt-2">{generatedCode.length.toLocaleString()} chars generated…</p>
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {generatedCode ? (
+                <>
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5 bg-gray-900/50 flex-shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse flex-shrink-0" />
+                    <span className="text-xs font-semibold text-white">Generating your app…</span>
+                    <span className="text-xs text-gray-500 ml-auto tabular-nums">{generatedCode.length.toLocaleString()} chars</span>
+                  </div>
+                  <pre ref={generatingCodeRef} className="flex-1 overflow-auto p-4 text-xs text-gray-300 font-mono leading-relaxed bg-gray-950">
+                    <code>{generatedCode}</code>
+                  </pre>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/20 flex items-center justify-center text-2xl animate-pulse">⚡</div>
+                  <p className="text-white font-semibold">Generating your app…</p>
+                  <p className="text-gray-500 text-sm">Claude is writing the code</p>
+                  <div className="flex gap-1 mt-2">
+                    {[0, 1, 2].map((i) => (
+                      <span key={i} className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />
+                    ))}
+                  </div>
+                </div>
               )}
+            </div>
+          )}
+
+          {/* Error */}
+          {phase === "error" && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-2xl">⚠️</div>
+              <p className="text-white font-semibold">Generation failed</p>
+              <p className="text-gray-500 text-sm max-w-sm">{error}</p>
+              <div className="flex items-center gap-3 mt-2">
+                <button
+                  onClick={handleNewApp}
+                  className="text-xs bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                >Start over</button>
+                <button
+                  onClick={() => generate(prompt)}
+                  className="text-xs bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                >Try again</button>
+              </div>
             </div>
           )}
 
@@ -248,7 +285,7 @@ export default function BuildPage() {
                   <iframe
                     srcDoc={generatedCode}
                     className="w-full h-full border-0"
-                    sandbox="allow-scripts allow-same-origin"
+                    sandbox="allow-scripts"
                     title="Generated App Preview"
                   />
                 )}
