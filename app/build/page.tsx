@@ -5,6 +5,7 @@ import Link from "next/link";
 import LearningPanel from "@/components/learning/LearningPanel";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { EXAMPLE_PROMPTS } from "@/lib/prompts";
+import { PREVIEW_STORAGE_SHIM } from "@/lib/previewShim";
 
 type Phase = "prd" | "generating" | "done" | "error";
 type Tab = "preview" | "code";
@@ -114,7 +115,7 @@ export default function BuildPage() {
   const progress = ((prdStep + 1) / 3) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="h-screen bg-gray-950 flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-3.5 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -283,7 +284,7 @@ export default function BuildPage() {
               <div className="flex-1 overflow-hidden">
                 {activeTab === "preview" && (
                   <iframe
-                    srcDoc={generatedCode}
+                    srcDoc={PREVIEW_STORAGE_SHIM + generatedCode}
                     className="w-full h-full border-0"
                     sandbox="allow-scripts"
                     title="Generated App Preview"
