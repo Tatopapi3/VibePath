@@ -51,6 +51,7 @@ export default function BuildPage() {
     setGeneratedCode("");
     setError(null);
     abortRef.current = new AbortController();
+    const startedAt = Date.now();
 
     try {
       const res = await fetch("/api/generate", {
@@ -84,8 +85,9 @@ export default function BuildPage() {
       const looksComplete = /<\/html\s*>\s*$/i.test(html.trim());
       if (markedTruncated || !looksComplete) {
         setGeneratedCode(html);
+        const elapsedSec = ((Date.now() - startedAt) / 1000).toFixed(1);
         throw new Error(
-          "The generated app was too large and got cut off before finishing. Try a simpler request, or ask for fewer features."
+          `The generated app was too large and got cut off before finishing (after ${elapsedSec}s, ${html.length.toLocaleString()} chars). Try a simpler request, or ask for fewer features.`
         );
       }
       setPhase("done");
