@@ -25,10 +25,16 @@ complete closing </html> tag; if you're running low on room, cut scope
 
 Start your response with <!DOCTYPE html>`;
 
+// Kept deliberately low-complexity: no charts, no drag-and-drop, no custom
+// SVG (progress rings, calendars) — those are exactly the kind of custom
+// rendering logic that inflates output past the ~9,000-character budget
+// the system prompt now enforces (see SYSTEM_PROMPT above and
+// app/api/generate/route.ts). Every one of these is a single-screen,
+// list/form-driven app that reliably finishes within that budget.
 export const EXAMPLE_PROMPTS = [
   "A todo list app with categories and priority levels",
-  "An expense tracker with charts and monthly summaries",
-  "A Kanban board with drag-and-drop columns",
-  "A restaurant booking system with time slots",
-  "A personal stats dashboard with progress rings",
+  "A habit tracker with a weekly checklist",
+  "A note-taking app with color-coded tags",
+  "A unit converter for length, weight, and temperature",
+  "A flashcard quiz app for studying",
 ];
