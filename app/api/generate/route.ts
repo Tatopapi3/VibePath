@@ -2,7 +2,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { TRUNCATION_MARKER } from "@/lib/truncationMarker";
 
-export const maxDuration = 60;
+// Vercel's Node runtime allows up to 300s on every plan (Hobby included);
+// Pro/Enterprise can go higher with per-function config. 300 gives a big
+// generation room to finish instead of the old 60s cap that forced tiny
+// apps. The streamed truncation checks below still handle a real cutoff.
+export const maxDuration = 300;
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -17,14 +21,11 @@ export async function POST(req: Request) {
   try {
     stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-6",
-      // The real ceiling here isn't tokens, it's this route's own
-      // maxDuration (60s, the Vercel Hobby plan's cap — can't be raised).
-      // Measured throughput is ~280 chars/sec, so anything that needs much
-      // more than ~8000 tokens wasn't going to finish in time regardless of
-      // this number. Kept as a real backstop against a runaway response,
-      // sized to the ~9,000-character budget the system prompt now asks
-      // for (see lib/prompts.ts), not as the thing preventing timeouts.
-      max_tokens: 8000,
+      // Sized to the ~40,000-character app budget the system prompt now
+      // asks for (see lib/prompts.ts), with headroom. At ~280 chars/sec
+      // that's well under this route's 300s maxDuration, so the token cap
+      // is a runaway-response backstop, not the thing bounding app size.
+      max_tokens: 24000,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: prompt }],
     });

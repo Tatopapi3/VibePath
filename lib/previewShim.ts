@@ -6,13 +6,25 @@
 // generated apps runs through React/Babel, that muting was making the
 // fatal-error overlay below useless for the crashes it exists to diagnose.
 // This adds crossorigin="anonymous" to external <script src> tags so real
-// error detail survives; the CDNs used here (unpkg, cdn.tailwindcss.com)
-// already send Access-Control-Allow-Origin: * , so this doesn't break
-// loading, it just stops the browser from hiding what went wrong.
+// error detail survives.
+//
+// BUT `crossorigin="anonymous"` turns the fetch into a CORS request, so it
+// only works for hosts that send `Access-Control-Allow-Origin`. unpkg /
+// jsdelivr / cdnjs do; `cdn.tailwindcss.com` does NOT — adding the
+// attribute there makes the browser block the script and every generated
+// app renders completely unstyled. So the Tailwind tag (and anything else
+// on the deny-list) is left as a plain, non-CORS <script src>, which
+// browsers always allow cross-origin.
+const NO_CORS_HOSTS = ["cdn.tailwindcss.com"];
+
 export function addCrossOriginToExternalScripts(html: string): string {
   return html.replace(
-    /<script([^>]*\ssrc=["']https?:\/\/[^"']+["'][^>]*)>/gi,
-    (match, attrs: string) => (/\bcrossorigin\b/i.test(attrs) ? match : `<script${attrs} crossorigin="anonymous">`)
+    /<script([^>]*\ssrc=["'](https?:\/\/[^"']+)["'][^>]*)>/gi,
+    (match, attrs: string, src: string) => {
+      if (/\bcrossorigin\b/i.test(attrs)) return match;
+      if (NO_CORS_HOSTS.some((h) => src.includes(h))) return match;
+      return `<script${attrs} crossorigin="anonymous">`;
+    }
   );
 }
 
