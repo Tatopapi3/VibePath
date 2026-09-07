@@ -76,15 +76,24 @@ app/
   build/page.tsx         # AI app builder
   learn/page.tsx         # Curriculum overview
   lesson/[id]/page.tsx    # Individual lesson/quiz/challenge
+  practice/page.tsx       # Quiz drill + code playground (runs JS/Python in-browser)
+  journey/page.tsx        # Ordered roadmap through the whole curriculum
   api/generate/route.ts   # Streams a generated app from Claude
   api/explain/route.ts    # Turns a generated app into a lesson
+  api/tutor/route.ts      # Streams the page-aware tutoring chatbot
 components/
   learning/               # Lesson/quiz/challenge UI
+  practice/               # QuizDrill + CodePlayground
+  tutor/                  # Floating tutor widget (mounted in layout on Build/Learn/…)
+  tour/                   # First-visit coach-mark tour (Build + Learn)
   ui/                     # Shared UI (theme toggle, etc.)
 lib/
   prompts.ts              # System prompt + example prompts for the builder
   content/types.ts        # Lesson/quiz/challenge/review content types
+  practice/               # Code runners (Web Worker for JS, Pyodide for Python) + grading
+  tutor/                  # Zustand store + useTutorContext (pages publish page context)
   supabase/client.ts       # Supabase browser client
+  supabase/*.sql           # Schema + seed scripts (run schema.sql first)
 ```
 
 > Note: `AGENTS.md` in this repo documents that this project pins a
