@@ -69,12 +69,12 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
   return (
     <div
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-6 transition-all duration-300 ${
-        visible ? "bg-gray-950/80 backdrop-blur-sm" : "bg-transparent backdrop-blur-none pointer-events-none"
+        visible ? "bg-gray-500/40 dark:bg-gray-950/80 backdrop-blur-sm" : "bg-transparent backdrop-blur-none pointer-events-none"
       }`}
       onClick={handleClose}
     >
       <div
-        className={`relative w-full max-w-md bg-gray-900 border border-violet-500/25 rounded-3xl shadow-2xl shadow-violet-950/60 overflow-hidden transition-all duration-300 ${
+        className={`relative w-full max-w-md bg-white dark:bg-gray-900 border border-violet-500/25 rounded-3xl shadow-2xl shadow-violet-950/20 dark:shadow-violet-950/60 overflow-hidden transition-all duration-300 ${
           visible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -87,12 +87,12 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
         <div className="flex items-center justify-between px-6 pt-5 pb-0">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-[10px]">✨</div>
-            <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest">Learning Path</span>
+            <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest">Learning Path</span>
           </div>
           <button
             type="button"
             onClick={handleClose}
-            className="text-gray-600 hover:text-gray-300 transition-colors w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-800 text-lg leading-none"
+            className="text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-300 transition-colors w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-lg leading-none"
           >×</button>
         </div>
 
@@ -100,8 +100,8 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
         {panelPhase === "intro" && (
           <div className="px-6 pt-6 pb-6 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-600/20 border border-violet-500/20 flex items-center justify-center text-3xl mx-auto mb-5">🎉</div>
-            <h3 className="text-lg font-bold text-white mb-2">Your app is ready!</h3>
-            <p className="text-sm text-gray-400 leading-relaxed mb-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Your app is ready!</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6">
               Want to understand what Claude just built? I can walk you through the key concepts — great for learning how to build apps.
             </p>
             <button
@@ -112,7 +112,7 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
             <button
               type="button"
               onClick={handleClose}
-              className="w-full text-xs text-gray-500 hover:text-gray-300 py-2 transition-colors"
+              className="w-full text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 py-2 transition-colors"
             >Skip for now →</button>
           </div>
         )}
@@ -121,7 +121,7 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
         {panelPhase === "loading" && (
           <div className="px-6 py-12 text-center">
             <div className="w-14 h-14 rounded-2xl bg-violet-500/20 border border-violet-500/20 flex items-center justify-center text-2xl mx-auto mb-5 animate-pulse">🧠</div>
-            <p className="text-white font-semibold mb-1.5">Analyzing your code…</p>
+            <p className="text-gray-900 dark:text-white font-semibold mb-1.5">Analyzing your code…</p>
             <p className="text-gray-500 text-sm">Claude is preparing your lesson</p>
             <div className="flex justify-center gap-1 mt-5">
               {[0, 1, 2].map((i) => (
@@ -134,8 +134,8 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
         {/* ── Error ── */}
         {panelPhase === "error" && (
           <div className="px-6 py-10 text-center">
-            <p className="text-red-400 text-sm mb-4">{error}</p>
-            <button type="button" onClick={handleClose} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">Close</button>
+            <p className="text-red-600 dark:text-red-400 text-sm mb-4">{error}</p>
+            <button type="button" onClick={handleClose} className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 transition-colors">Close</button>
           </div>
         )}
 
@@ -148,7 +148,7 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
                   key={i}
                   type="button"
                   onClick={() => setStep(i)}
-                  className={`h-1 rounded-full transition-all duration-300 ${i === step ? "bg-violet-500 flex-1" : i < step ? "bg-violet-700 w-5" : "bg-gray-700 w-5"}`}
+                  className={`h-1 rounded-full transition-all duration-300 ${i === step ? "bg-violet-500 flex-1" : i < step ? "bg-violet-700 w-5" : "bg-gray-300 dark:bg-gray-700 w-5"}`}
                 />
               ))}
               <span className="text-[10px] text-gray-500 ml-1.5 flex-shrink-0 tabular-nums">{step + 1}/{sections.length}</span>
@@ -157,20 +157,20 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
             <div className="px-6 pt-5 pb-0 space-y-4">
               <div>
                 <span className="text-3xl leading-none">{section.emoji}</span>
-                <h3 className="text-base font-bold text-white mt-2 mb-2">{section.title}</h3>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mt-2 mb-2">{section.title}</h3>
                 <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl px-3.5 py-2.5">
-                  <p className="text-xs text-violet-300 leading-relaxed font-medium">{section.concept}</p>
+                  <p className="text-xs text-violet-700 dark:text-violet-300 leading-relaxed font-medium">{section.concept}</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-300 leading-relaxed">{section.explanation}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{section.explanation}</p>
               {section.codeHint && (
-                <div className="bg-gray-950 border border-white/5 rounded-xl px-4 py-3 overflow-x-auto">
-                  <p className="text-[11px] font-mono text-violet-300 whitespace-pre leading-relaxed">{section.codeHint}</p>
+                <div className="bg-gray-100 dark:bg-gray-950 border border-black/5 dark:border-white/5 rounded-xl px-4 py-3 overflow-x-auto">
+                  <p className="text-[11px] font-mono text-violet-700 dark:text-violet-300 whitespace-pre leading-relaxed">{section.codeHint}</p>
                 </div>
               )}
               <div className="flex gap-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3.5 py-3">
-                <span className="text-emerald-400 flex-shrink-0 mt-0.5">💡</span>
-                <p className="text-xs text-emerald-300 leading-relaxed font-medium">{section.takeaway}</p>
+                <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5">💡</span>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed font-medium">{section.takeaway}</p>
               </div>
             </div>
 
@@ -179,7 +179,7 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
                 type="button"
                 onClick={() => setStep((s) => s - 1)}
                 disabled={step === 0}
-                className="text-xs font-semibold text-gray-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-colors px-3 py-2 rounded-xl hover:bg-gray-800"
+                className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-colors px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >← Back</button>
 
               {isLast ? (
@@ -203,13 +203,13 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
         {panelPhase === "journey" && (
           <div className="px-6 pt-6 pb-6 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border border-emerald-500/20 flex items-center justify-center text-3xl mx-auto mb-5">🎓</div>
-            <h3 className="text-lg font-bold text-white mb-2">You nailed the basics!</h3>
-            <p className="text-sm text-gray-400 leading-relaxed mb-2">
-              Ready to go deeper? Your <span className="text-violet-300 font-semibold">CodePath Journey</span> has structured lessons, quizzes, and coding challenges for everything used in your app.
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">You nailed the basics!</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-2">
+              Ready to go deeper? Your <span className="text-violet-600 dark:text-violet-300 font-semibold">CodePath Journey</span> has structured lessons, quizzes, and coding challenges for everything used in your app.
             </p>
             <div className="flex flex-wrap gap-2 justify-center mb-6 mt-4">
               {["JavaScript", "Functions", "DOM", "Arrays", "ES6"].map((tag) => (
-                <span key={tag} className="text-[10px] font-bold text-violet-300 bg-violet-500/15 border border-violet-500/20 rounded-full px-3 py-1">{tag}</span>
+                <span key={tag} className="text-[10px] font-bold text-violet-700 dark:text-violet-300 bg-violet-500/15 border border-violet-500/20 rounded-full px-3 py-1">{tag}</span>
               ))}
             </div>
             <button
@@ -220,7 +220,7 @@ export default function LearningPanel({ code, prompt, onClose }: Props) {
             <button
               type="button"
               onClick={handleClose}
-              className="w-full text-xs text-gray-500 hover:text-gray-300 py-2 transition-colors"
+              className="w-full text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 py-2 transition-colors"
             >Maybe later — show me my app</button>
           </div>
         )}

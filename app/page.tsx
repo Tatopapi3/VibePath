@@ -14,6 +14,8 @@ export default function Home() {
         <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
           <Link href="/build" className="hover:text-gray-900 dark:hover:text-white transition-colors">Builder</Link>
           <Link href="/learn" className="hover:text-gray-900 dark:hover:text-white transition-colors">Learn</Link>
+          <Link href="/journey" className="hover:text-gray-900 dark:hover:text-white transition-colors">Journey</Link>
+          <Link href="/practice" className="hover:text-gray-900 dark:hover:text-white transition-colors">Practice</Link>
           <ThemeToggle />
         </div>
       </nav>
