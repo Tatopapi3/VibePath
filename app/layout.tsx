@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TutorMount from "@/components/tutor/TutorMount";
 
 export const metadata: Metadata = {
   title: "VibePath — Build it. Learn it. Master it.",
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-white antialiased" suppressHydrationWarning>
         {children}
+        <TutorMount />
       </body>
     </html>
   );
