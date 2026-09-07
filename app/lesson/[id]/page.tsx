@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getDeviceId } from "@/lib/deviceId";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useTutorContext } from "@/lib/tutor/useTutorContext";
 import type { Lesson, LessonContent, QuizContent, ChallengeContent } from "@/lib/content/types";
 
 export default function LessonPage() {
@@ -18,18 +19,38 @@ export default function LessonPage() {
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from("lessons").select("*").eq("id", id).single().then(({ data }) => {
-      setLesson(data);
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch {
+      setLoadError(true);
       setLoading(false);
-    });
+      return;
+    }
+    supabase.from("lessons").select("*").eq("id", id).single().then(
+      ({ data, error }) => {
+        if (error) setLoadError(true);
+        else setLesson(data);
+        setLoading(false);
+      },
+      () => {
+        setLoadError(true);
+        setLoading(false);
+      }
+    );
   }, [id]);
 
   useEffect(() => {
     if (!done || !lesson) return;
-    const supabase = createClient();
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch {
+      return;
+    }
     supabase
       .from("user_progress")
       .upsert(
@@ -47,9 +68,15 @@ export default function LessonPage() {
       });
   }, [done, lesson, score]);
 
+  useTutorContext(
+    "lesson",
+    lesson?.title,
+    lesson ? JSON.stringify(lesson.content_json).slice(0, 5000) : undefined
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
       </div>
     );
@@ -57,9 +84,14 @@ export default function LessonPage() {
 
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-4">
-        <p className="text-gray-400">Lesson not found.</p>
-        <Link href="/learn" className="text-violet-400 text-sm hover:underline">← Back to learning</Link>
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <div className="text-4xl">{loadError ? "📡" : "🔍"}</div>
+        <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+          {loadError
+            ? "Couldn't load this lesson — the learning database may be offline. Try again shortly."
+            : "Lesson not found."}
+        </p>
+        <Link href="/learn" className="text-violet-600 dark:text-violet-400 text-sm hover:underline">← Back to learning</Link>
       </div>
     );
   }
@@ -81,15 +113,15 @@ export default function LessonPage() {
         {/* Progress */}
         <div className="flex gap-1.5 mb-8">
           {cards.map((_, i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= cardIndex ? "bg-violet-500" : "bg-gray-700"}`} />
+            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= cardIndex ? "bg-violet-500" : "bg-gray-300 dark:bg-gray-700"}`} />
           ))}
         </div>
 
-        <div className="bg-gray-900 rounded-2xl border border-white/10 p-6 mb-6">
-          <h2 className="text-lg font-bold text-white mb-3">{card.title}</h2>
-          <p className="text-sm text-gray-300 leading-relaxed mb-4">{card.body}</p>
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl border border-black/10 dark:border-white/10 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">{card.title}</h2>
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4">{card.body}</p>
           {card.code && (
-            <pre className="bg-gray-950 rounded-xl p-4 text-[11px] font-mono text-violet-300 overflow-x-auto leading-relaxed border border-white/5">
+            <pre className="bg-gray-100 dark:bg-gray-950 rounded-xl p-4 text-[11px] font-mono text-violet-700 dark:text-violet-300 overflow-x-auto leading-relaxed border border-black/5 dark:border-white/5">
               <code>{card.code}</code>
             </pre>
           )}
@@ -97,7 +129,7 @@ export default function LessonPage() {
 
         <div className="flex justify-between">
           <button onClick={() => setCardIndex((i) => i - 1)} disabled={cardIndex === 0}
-            className="text-sm text-gray-400 hover:text-white disabled:opacity-30 px-4 py-2 rounded-xl hover:bg-white/5 transition-colors">← Back</button>
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors">← Back</button>
           <button onClick={() => isLast ? setDone(true) : setCardIndex((i) => i + 1)}
             className="text-sm font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-6 py-2.5 rounded-xl transition-all">
             {isLast ? "Complete ✓" : "Next →"}
@@ -121,22 +153,22 @@ export default function LessonPage() {
       <PageShell lesson={lesson}>
         <div className="flex gap-1.5 mb-8">
           {questions.map((_, i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < cardIndex ? "bg-violet-500" : i === cardIndex ? "bg-violet-400" : "bg-gray-700"}`} />
+            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < cardIndex ? "bg-violet-500" : i === cardIndex ? "bg-violet-400" : "bg-gray-300 dark:bg-gray-700"}`} />
           ))}
         </div>
 
         <p className="text-xs text-gray-500 mb-3">Question {cardIndex + 1} of {questions.length}</p>
-        <h2 className="text-base font-bold text-white mb-5">{q.question}</h2>
+        <h2 className="text-base font-bold text-gray-900 dark:text-white mb-5">{q.question}</h2>
 
         <div className="space-y-2.5 mb-6">
           {q.options.map((opt, i) => {
-            let cls = "border-white/10 bg-gray-900 text-gray-300 hover:border-violet-500/50 hover:text-white";
+            let cls = "border-black/10 dark:border-white/10 bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:border-violet-500/50 hover:text-gray-900 dark:hover:text-white";
             if (revealed) {
-              if (i === q.correct) cls = "border-emerald-500 bg-emerald-500/10 text-emerald-300";
-              else if (i === selected) cls = "border-red-500 bg-red-500/10 text-red-300";
-              else cls = "border-white/5 bg-gray-900/50 text-gray-600 opacity-50";
+              if (i === q.correct) cls = "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+              else if (i === selected) cls = "border-red-500 bg-red-500/10 text-red-700 dark:text-red-300";
+              else cls = "border-black/5 dark:border-white/5 bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600 opacity-50";
             } else if (selected === i) {
-              cls = "border-violet-500 bg-violet-500/10 text-violet-300";
+              cls = "border-violet-500 bg-violet-500/10 text-violet-700 dark:text-violet-300";
             }
             return (
               <button
@@ -150,7 +182,7 @@ export default function LessonPage() {
         </div>
 
         {revealed && (
-          <div className={`rounded-xl px-4 py-3 mb-5 text-xs leading-relaxed ${selected === q.correct ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300" : "bg-red-500/10 border border-red-500/20 text-red-300"}`}>
+          <div className={`rounded-xl px-4 py-3 mb-5 text-xs leading-relaxed ${selected === q.correct ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300" : "bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300"}`}>
             <span className="font-bold">{selected === q.correct ? "Correct! " : "Not quite. "}</span>{q.explanation}
           </div>
         )}
@@ -181,21 +213,21 @@ export default function LessonPage() {
 
     return (
       <PageShell lesson={lesson}>
-        <div className="bg-gray-900 rounded-2xl border border-white/10 p-5 mb-4">
-          <h2 className="text-base font-bold text-white mb-2">{ch.description}</h2>
-          <p className="text-sm text-gray-400 leading-relaxed">{ch.instructions}</p>
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl border border-black/10 dark:border-white/10 p-5 mb-4">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-2">{ch.description}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{ch.instructions}</p>
         </div>
 
-        <pre className="bg-gray-950 rounded-xl p-4 text-[11px] font-mono text-gray-300 overflow-x-auto leading-relaxed border border-white/5 mb-4">
+        <pre className="bg-gray-100 dark:bg-gray-950 rounded-xl p-4 text-[11px] font-mono text-gray-700 dark:text-gray-300 overflow-x-auto leading-relaxed border border-black/5 dark:border-white/5 mb-4">
           <code>{ch.starterCode}</code>
         </pre>
 
         {ch.hints && (
           <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-4 mb-6">
-            <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-2">Hints</p>
+            <p className="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-2">Hints</p>
             <ul className="space-y-1">
               {ch.hints.map((h, i) => (
-                <li key={i} className="text-xs text-violet-300 flex gap-2"><span className="opacity-50">→</span>{h}</li>
+                <li key={i} className="text-xs text-violet-700 dark:text-violet-300 flex gap-2"><span className="opacity-50">→</span>{h}</li>
               ))}
             </ul>
           </div>
@@ -214,14 +246,14 @@ export default function LessonPage() {
 
 function PageShell({ lesson, children }: { lesson: Lesson; children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
-      <nav className="flex items-center gap-3 px-6 py-3.5 border-b border-white/5 sticky top-0 z-10 bg-gray-950/90 backdrop-blur-sm">
-        <Link href="/learn" className="text-gray-500 hover:text-white transition-colors text-sm">← Back</Link>
-        <span className="text-gray-700">/</span>
-        <span className="text-white text-sm font-semibold truncate">{lesson.title}</span>
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+      <nav className="flex items-center gap-3 px-6 py-3.5 border-b border-black/5 dark:border-white/5 sticky top-0 z-10 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm">
+        <Link href="/learn" className="text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors text-sm">← Back</Link>
+        <span className="text-gray-300 dark:text-gray-700">/</span>
+        <span className="text-gray-900 dark:text-white text-sm font-semibold truncate">{lesson.title}</span>
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[10px] font-bold text-yellow-500">+{lesson.xp_reward} XP</span>
-          <span className="text-[10px] font-bold text-amber-400">+{lesson.coin_reward} coins</span>
+          <span className="text-[10px] font-bold text-yellow-600 dark:text-yellow-500">+{lesson.xp_reward} XP</span>
+          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">+{lesson.coin_reward} coins</span>
           <ThemeToggle />
         </div>
       </nav>
@@ -232,15 +264,15 @@ function PageShell({ lesson, children }: { lesson: Lesson; children: React.React
 
 function CompletionScreen({ lesson, score, total, onBack }: { lesson: Lesson; score?: number; total?: number; onBack: () => void }) {
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 text-center">
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col items-center justify-center px-4 text-center">
       <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-500/20 to-fuchsia-600/20 border border-violet-500/20 flex items-center justify-center text-4xl mb-6">🎉</div>
-      <h2 className="text-2xl font-black text-white mb-2">
+      <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">
         {score !== undefined ? `${score}/${total} Correct!` : "Lesson Complete!"}
       </h2>
-      <p className="text-gray-400 text-sm mb-2">{lesson.title}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">{lesson.title}</p>
       <div className="flex items-center gap-4 mb-8">
-        <span className="text-yellow-400 font-bold">+{lesson.xp_reward} XP</span>
-        <span className="text-amber-400 font-bold">+{lesson.coin_reward} coins</span>
+        <span className="text-yellow-600 dark:text-yellow-400 font-bold">+{lesson.xp_reward} XP</span>
+        <span className="text-amber-600 dark:text-amber-400 font-bold">+{lesson.coin_reward} coins</span>
       </div>
       <button onClick={onBack}
         className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold px-8 py-3 rounded-xl transition-all">
