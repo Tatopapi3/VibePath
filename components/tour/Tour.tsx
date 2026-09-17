@@ -11,7 +11,7 @@ export interface TourStep {
 
 interface Props {
   steps: TourStep[];
-  /** localStorage key; once set, the tour won't auto-run again. */
+  /** Identifies which tour this is, for the "?" replay button's targeting. */
   storageKey: string;
 }
 
@@ -34,20 +34,12 @@ export default function Tour({ steps, storageKey }: Props) {
     setActive(true);
   }, []);
 
-  // Decide whether to run: first visit, or ?tour=1 in the URL.
+  // Runs on every load of the page (including a plain refresh) — not
+  // gated behind a "seen it already" flag.
   useEffect(() => {
-    let seen = false;
-    try {
-      seen = localStorage.getItem(storageKey) === "1";
-    } catch {
-      /* ignore */
-    }
-    const forced = new URLSearchParams(window.location.search).get("tour") === "1";
-    if (!seen || forced) {
-      const t = setTimeout(start, 400); // let the target page paint first
-      return () => clearTimeout(t);
-    }
-  }, [storageKey, start]);
+    const t = setTimeout(start, 400); // let the target page paint first
+    return () => clearTimeout(t);
+  }, [start]);
 
   // Replayable from anywhere on the page via a "?" button.
   useEffect(() => {
@@ -88,17 +80,6 @@ export default function Tour({ steps, storageKey }: Props) {
 
   function finish() {
     setActive(false);
-    try {
-      localStorage.setItem(storageKey, "1");
-    } catch {
-      /* ignore */
-    }
-    // drop ?tour=1 so a refresh doesn't restart it
-    const url = new URL(window.location.href);
-    if (url.searchParams.has("tour")) {
-      url.searchParams.delete("tour");
-      window.history.replaceState({}, "", url.toString());
-    }
   }
 
   function next() {
