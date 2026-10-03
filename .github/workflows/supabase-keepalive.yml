@@ -1,0 +1,38 @@
+name: Supabase keepalive
+
+# Supabase's free tier auto-pauses a project after roughly a week with no
+# real traffic. This repo's local dev sessions are sparse, so the deployed
+# site alone doesn't generate enough activity to keep it awake. Running a
+# trivial read against the DB every couple of days resets that clock —
+# well under the ~7-day threshold, with margin for a missed run.
+#
+# Needs two repo secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL        the project's REST URL (NEXT_PUBLIC_SUPABASE_URL)
+#   SUPABASE_ANON_KEY    its anon/publishable key (NEXT_PUBLIC_SUPABASE_ANON_KEY)
+# Both are the same "public, safe to ship to the browser" values already in
+# .env.local — nothing more sensitive than what the deployed site exposes.
+
+on:
+  schedule:
+    - cron: "0 13 */3 * *" # every 3 days, 13:00 UTC
+  workflow_dispatch: {} # manual "Run workflow" button for on-demand pings
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the curriculum table
+        run: |
+          status=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/languages?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+          echo "HTTP $status"
+          cat /tmp/response.json
+          if [ "$status" -ge 400 ]; then
+            echo "::error::Supabase keepalive query failed with HTTP $status"
+            exit 1
+          fi
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
