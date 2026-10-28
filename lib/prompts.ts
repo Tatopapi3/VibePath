@@ -4,7 +4,8 @@ Requirements:
 - Single HTML file with all CSS and JavaScript inline
 - Use React 18 via CDN (https://unpkg.com/react@18/umd/react.development.js)
 - Use ReactDOM via CDN (https://unpkg.com/react-dom@18/umd/react-dom.development.js)
-- Use Babel standalone for JSX (https://unpkg.com/@babel/standalone/babel.min.js)
+- Use Babel standalone for JSX (https://unpkg.com/@babel/standalone@7.29.11/babel.min.js)
+- Do NOT use import/export statements; everything runs as plain browser scripts
 - Use Tailwind CSS via CDN (https://cdn.tailwindcss.com)
 - Clean, modern, and fully functional
 - A few pieces of realistic sample data — 3-4 items is plenty, not a long list

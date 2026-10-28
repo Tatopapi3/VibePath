@@ -17,8 +17,19 @@
 // browsers always allow cross-origin.
 const NO_CORS_HOSTS = ["cdn.tailwindcss.com"];
 
+// unpkg resolves an unpinned `@babel/standalone` to the newest major, and
+// Babel 8 no longer rewrites ES module syntax in <script type="text/babel">,
+// so any generated app containing `export`/`import` died at startup with
+// "Unexpected token 'export'". Pin it to the last 7.x so both new and
+// previously generated apps keep working.
+const BABEL_STANDALONE_7 = "@babel/standalone@7.29.11";
+
+export function pinBabelStandalone(html: string): string {
+  return html.replace(/@babel\/standalone(?:@[^/"'\s]*)?(?=\/)/g, BABEL_STANDALONE_7);
+}
+
 export function addCrossOriginToExternalScripts(html: string): string {
-  return html.replace(
+  return pinBabelStandalone(html).replace(
     /<script([^>]*\ssrc=["'](https?:\/\/[^"']+)["'][^>]*)>/gi,
     (match, attrs: string, src: string) => {
       if (/\bcrossorigin\b/i.test(attrs)) return match;
